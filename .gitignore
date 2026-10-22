@@ -6,3 +6,4 @@ dist
 # Verbatim extracts of copyrighted course slides/PDFs — keep local only
 docs/source-notes/
 *.tsbuildinfo
+dist-offline

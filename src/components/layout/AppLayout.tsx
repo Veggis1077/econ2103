@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useActiveProfile } from '../../profiles/ProfileContext';
 import { PROFILES } from '../../profiles/profiles';
 import { useTheme } from '../../hooks/useTheme';
+import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 import { Avatar } from '../ui/Avatar';
 import { lazy } from 'react';
 
@@ -58,7 +59,8 @@ export function AppLayout() {
           {n.label}
         </NavLink>
       ))}
-      <div className="mt-auto rounded-xl bg-ink-50 p-3 text-xs leading-5 text-ink-500 dark:bg-ink-800/60 dark:text-ink-400">
+      <OfflineBadge />
+      <div className="mt-2 rounded-xl bg-ink-50 p-3 text-xs leading-5 text-ink-500 dark:bg-ink-800/60 dark:text-ink-400">
         Progress is saved in <strong>this browser only</strong>. Use <Link to="/progress" className="link">My Progress → Export</Link> to back up or move devices.
       </div>
     </nav>
@@ -130,5 +132,22 @@ export function Breadcrumbs({ items }: { items: { label: ReactNode; to?: string 
         </span>
       ))}
     </nav>
+  );
+}
+
+function OfflineBadge() {
+  const o = useOfflineStatus();
+  if (!o.supported) return <div className="mt-auto" />;
+  const tone = !o.online ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200' : o.ready ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200' : 'bg-ink-50 text-ink-600 dark:bg-ink-800/60 dark:text-ink-300';
+  return (
+    <div className={`mt-auto rounded-xl p-3 text-xs leading-5 ${tone}`} role="status" aria-live="polite">
+      {!o.online ? (
+        <><strong>Offline mode.</strong> Everything still works; progress is saved on this device.</>
+      ) : o.ready ? (
+        <><strong>✓ Available offline.</strong> The whole app is saved on this device — it will work without internet (e.g. on a plane). Backup: <a className="underline" href="./econ2103-offline.html" download>download a single offline file</a>.</>
+      ) : (
+        <><strong>Saving for offline use…</strong> {o.total ? `${o.cached}/${o.total} files` : ''} Keep this page open for a moment.</>
+      )}
+    </div>
   );
 }
