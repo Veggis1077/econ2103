@@ -1,0 +1,8 @@
+node_modules
+dist
+.DS_Store
+*.local
+
+# Verbatim extracts of copyrighted course slides/PDFs — keep local only
+docs/source-notes/
+*.tsbuildinfo
