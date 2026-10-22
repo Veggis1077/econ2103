@@ -14,12 +14,13 @@ export interface ProductionState {
   inputCost: number;
   fixedCost: number;
   workers: number;
+  costMax?: number; fixedMax?: number;
 }
 
 const PRESETS: { name: string; description: string; state: ProductionState }[] = [
-  { name: "Caroline's cookies", description: 'Course Table 1: factory $30/h, workers $10/h', state: { name: "Caroline's Cookie Factory", inputName: 'Workers', outputName: 'Cookies per hour', output: [0, 50, 90, 120, 140, 150, 155], inputCost: 10, fixedCost: 30, workers: 3 } },
-  { name: 'Nimbus brooms', description: 'Problem set Ch. 14, P4: worker $100/day, fixed $200', state: { name: 'Nimbus, Inc.', inputName: 'Workers', outputName: 'Brooms per day', output: [0, 20, 50, 90, 120, 140, 150, 155], inputCost: 100, fixedCost: 200, workers: 3 } },
-  { name: 'Fisherman', description: 'Self-practice Ch. 14, P3: pole $10, time $5/hour', state: { name: 'Commercial fisherman', inputName: 'Hours', outputName: 'Pounds of fish', output: [0, 10, 18, 24, 28, 30], inputCost: 5, fixedCost: 10, workers: 2 } },
+  { name: "Caroline's cookies", description: 'Course Table 1: factory $30/h, workers $10/h', state: { name: "Caroline's Cookie Factory", inputName: 'Workers', outputName: 'Cookies per hour', output: [0, 50, 90, 120, 140, 150, 155], inputCost: 10, fixedCost: 30, workers: 3, costMax: 40, fixedMax: 120 } },
+  { name: 'Nimbus brooms', description: 'Problem set Ch. 14, P4: worker $100/day, fixed $200', state: { name: 'Nimbus, Inc.', inputName: 'Workers', outputName: 'Brooms per day', output: [0, 20, 50, 90, 120, 140, 150, 155], inputCost: 100, fixedCost: 200, workers: 3, costMax: 300, fixedMax: 600 } },
+  { name: 'Fisherman', description: 'Self-practice Ch. 14, P3: pole $10, time $5/hour', state: { name: 'Commercial fisherman', inputName: 'Hours', outputName: 'Pounds of fish', output: [0, 10, 18, 24, 28, 30], inputCost: 5, fixedCost: 10, workers: 2, costMax: 20, fixedMax: 40 } },
 ];
 
 export default function Production({ initial, onChange, preset = 0 }: ModelProps<ProductionState>) {
@@ -78,8 +79,8 @@ export default function Production({ initial, onChange, preset = 0 }: ModelProps
         <Slider label={`Number of ${st.inputName.toLowerCase()}`} value={L} min={0} max={n} step={1} onChange={(workers) => set({ workers })} />
       </ControlGroup>
       <ControlGroup title="Input prices">
-        <Slider label={`Cost per ${st.inputName.toLowerCase().replace(/s$/, '')}`} value={st.inputCost} min={1} max={start.inputCost * 3} step={1} onChange={(inputCost) => set({ inputCost })} format={(v) => money(v, 0)} />
-        <Slider label="Fixed cost" value={st.fixedCost} min={0} max={start.fixedCost * 3 + 10} step={1} onChange={(fixedCost) => set({ fixedCost })} format={(v) => money(v, 0)} />
+        <Slider label={`Cost per ${st.inputName.toLowerCase().replace(/s$/, '')}`} value={st.inputCost} min={1} max={st.costMax ?? 300} step={1} onChange={(inputCost) => set({ inputCost })} format={(v) => money(v, 0)} />
+        <Slider label="Fixed cost" value={st.fixedCost} min={0} max={st.fixedMax ?? 600} step={1} onChange={(fixedCost) => set({ fixedCost })} format={(v) => money(v, 0)} />
       </ControlGroup>
     </>
   );

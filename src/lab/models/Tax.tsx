@@ -100,7 +100,7 @@ export default function Tax({ initial, onChange, preset = 0 }: ModelProps<TaxSta
   const controls = (
     <>
       <ControlGroup title={isSubsidy ? 'Subsidy per unit' : 'Tax per unit'}>
-        <Slider label={isSubsidy ? 'Subsidy s' : 'Tax t'} value={st.t} min={-maxTax / 2} max={maxTax} step={maxTax / 400} onChange={(t) => set({ t })} format={(v) => (v < 0 ? `subsidy ${money(-v)}` : money(v))} hint="Drag left of 0 for a subsidy. You can also drag the purple handle on the graph." />
+        <Slider label={isSubsidy ? 'Subsidy s' : 'Tax t'} value={st.t} min={-st.yMax * 0.4} max={st.yMax * 0.9} step={st.yMax / 400} onChange={(t) => set({ t })} format={(v) => (v < 0 ? `subsidy ${money(-v)}` : money(v))} hint="Drag left of 0 for a subsidy. You can also drag the purple handle on the graph." />
         <Segmented size="sm" value={st.leviedOn} onChange={(leviedOn) => set({ leviedOn })} options={[{ value: 'sellers', label: 'Levied on sellers' }, { value: 'buyers', label: 'Levied on buyers' }]} />
       </ControlGroup>
       <ControlGroup title="Demand  P = a − bQ" color="var(--c-demand)">

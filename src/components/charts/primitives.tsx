@@ -47,7 +47,12 @@ const centroid = (pts: [number, number][]): [number, number] => [pts.reduce((s, 
 
 /** Dashed guide lines from a point down to the x-axis and across to the y-axis, with optional axis labels. */
 export function Guide({ x: gx, y: gy, toX = true, toY = true, xLabel, yLabel, color = 'var(--c-guide)' }: { x: number; y: number; toX?: boolean; toY?: boolean; xLabel?: string; yLabel?: string; color?: string }) {
-  const { x, y, inner } = usePlot();
+  const { x, y, inner, xDomain, yDomain } = usePlot();
+  // Skip a guide that would lie on top of an axis (point on the axis itself).
+  const onXAxis = Math.abs(gy - yDomain[0]) < (yDomain[1] - yDomain[0]) * 0.005;
+  const onYAxis = Math.abs(gx - xDomain[0]) < (xDomain[1] - xDomain[0]) * 0.005;
+  toX = toX && !onXAxis;
+  toY = toY && !onYAxis;
   return (
     <g pointerEvents="none">
       {toX && <line x1={x(gx)} x2={x(gx)} y1={y(gy)} y2={inner.bottom} stroke={color} strokeDasharray="4 4" strokeWidth={1.2} />}

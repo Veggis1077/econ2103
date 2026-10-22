@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 
 export function Card({ children, className = '', as: As = 'div' }: { children: ReactNode; className?: string; as?: 'div' | 'section' | 'article' }) {
   return <As className={`card ${className}`}>{children}</As>;
@@ -75,21 +75,64 @@ export function Badge({ children, color = 'ink' }: { children: ReactNode; color?
   return <span className={`chip ${map[color]}`}>{children}</span>;
 }
 
-export function Slider({ label, value, min, max, step = 1, onChange, format, hint, color }: {
+/** Round a raw step to a "nice" 1/2/5 × 10^k value so slider values stay clean (0.05, not 0.06). */
+export function niceStep(raw: number): number {
+  if (!(raw > 0) || !Number.isFinite(raw)) return 1;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const n = raw / mag;
+  return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * mag;
+}
+
+const decimalsOf = (step: number) => Math.max(0, Math.min(6, -Math.floor(Math.log10(step) + 1e-9)));
+
+/**
+ * Range slider with a filled track, a large thumb, keyboard support and an editable
+ * number box for exact values. Values are snapped to a nice step and clamped to [min, max].
+ */
+export function Slider({ label, value, min: rawMin, max: rawMax, step, onChange, format, hint, color }: {
   label: ReactNode; value: number; min: number; max: number; step?: number; onChange: (v: number) => void; format?: (v: number) => string; hint?: ReactNode; color?: string;
 }) {
+  const st = niceStep(step ?? (rawMax - rawMin) / 200);
+  const dec = decimalsOf(st);
+  // Align the limits to whole steps so round numbers (45, 2.5 …) sit exactly on the slider grid.
+  const min = Number((Math.ceil(rawMin / st - 1e-9) * st).toFixed(dec + 2));
+  const max = Number((Math.floor(rawMax / st + 1e-9) * st).toFixed(dec + 2));
+  const snap = (v: number) => Number((Math.round(Math.min(max, Math.max(min, v)) / st) * st).toFixed(dec + 2));
+  const v = Math.min(max, Math.max(min, value));
+  const pctFill = max > min ? ((v - min) / (max - min)) * 100 : 0;
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    if (draft === null) return;
+    const n = parseFloat(draft.replace(',', '.'));
+    if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
+    setDraft(null);
+  };
+  const shown = draft ?? Number(v.toFixed(Math.max(dec, 0))).toString();
+  // Only show the formatted text when it adds information beyond the number box (e.g. "subsidy $3", "Q=4, P=5").
+  const f = format?.(v);
+  const formatted = f && f.replace(/[$,\s+]/g, '') !== Number(v.toFixed(Math.max(dec, 0))).toString() && Number(f.replace(/[$,\s+%]/g, '')).toString() !== Number(v.toFixed(2)).toString() ? f : null;
+  const id = useId();
   return (
-    <label className="block">
-      <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
-        <span className="flex items-center gap-2 font-medium text-ink-700 dark:text-ink-200">
-          {color && <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />}
-          {label}
-        </span>
-        <span className="font-mono text-xs tabular-nums text-ink-500 dark:text-ink-400">{format ? format(value) : value}</span>
+    <div>
+      <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
+        <label htmlFor={id} className="flex min-w-0 items-center gap-2 font-medium text-ink-700 dark:text-ink-200">
+          {color && <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} />}
+          <span className="truncate">{label}</span>
+        </label>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {formatted && <span className="hidden font-mono text-[11px] tabular-nums text-ink-400 sm:inline">{formatted}</span>}
+          <input type="text" inputMode="decimal" aria-label={`${typeof label === 'string' ? label : 'value'} (exact value)`} value={shown}
+            onChange={(e) => setDraft(e.target.value)} onBlur={commit}
+            onKeyDown={(e) => { if (e.key === 'Enter') { commit(); (e.target as HTMLInputElement).blur(); } if (e.key === 'Escape') setDraft(null); }}
+            className="h-7 w-[4.5rem] rounded-md border border-ink-200 bg-white px-1.5 text-right font-mono text-xs tabular-nums text-ink-800 outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100" />
+        </div>
       </div>
-      <input type="range" className="w-full cursor-pointer" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      <input id={id} type="range" className="econ-range w-full" min={min} max={max} step={st} value={v}
+        style={{ ['--fill' as string]: `${pctFill}%`, ['--thumb' as string]: color ?? 'var(--accent)' }}
+        onChange={(e) => onChange(snap(Number(e.target.value)))} />
+      <div className="mt-0.5 flex justify-between font-mono text-[10px] text-ink-400"><span>{Number(min.toFixed(dec))}</span><span>{Number(max.toFixed(dec))}</span></div>
       {hint && <div className="mt-0.5 text-xs text-ink-500">{hint}</div>}
-    </label>
+    </div>
   );
 }
 

@@ -4,7 +4,7 @@ export const tickDy = (t: Tick) => (typeof t === 'number' ? 0 : t.dy ?? 0);
 
 /** "Nice" tick values (1, 2, 2.5, 5 × 10^k) covering [min, max]. */
 export function niceTicks(min: number, max: number, count = 6): number[] {
-  if (!(max > min)) return [min];
+  if (!(max > min) || !Number.isFinite(min) || !Number.isFinite(max)) return Number.isFinite(min) ? [min] : [];
   const span = max - min;
   const raw = span / count;
   const mag = 10 ** Math.floor(Math.log10(raw));
@@ -12,7 +12,7 @@ export function niceTicks(min: number, max: number, count = 6): number[] {
   const step = (norm < 1.5 ? 1 : norm < 2.25 ? 2 : norm < 3.5 ? 2.5 : norm < 7.5 ? 5 : 10) * mag;
   const start = Math.ceil(min / step - 1e-9) * step;
   const out: number[] = [];
-  for (let v = start; v <= max + step * 1e-6; v += step) out.push(Math.round(v / step) * step);
+  for (let v = start; v <= max + step * 1e-6 && out.length < 40; v += step) out.push(Math.round(v / step) * step);
   return out;
 }
 

@@ -4,12 +4,12 @@ import { Slider, Stat, fmt, money } from '../../components/ui';
 import { averageTotalCost, averageVariableCost, calculateCompetitiveFirm, marginalCost, minAverageTotalCost, minAverageVariableCost, type CubicCost } from '../../economics';
 import { ControlGroup, Explain, ModelShell, type ModelProps } from '../ModelShell';
 
-export interface FirmState extends CubicCost { price: number; qMax: number; yMax: number }
+export interface FirmState extends CubicCost { price: number; qMax: number; yMax: number; fixedMax?: number }
 
 const PRESETS: { name: string; description: string; state: FirmState }[] = [
-  { name: 'Typical firm', description: 'U-shaped AVC and ATC, rising MC', state: { fixed: 30, alpha: 12, beta: 1.2, gamma: 0.05, price: 9, qMax: 25, yMax: 30 } },
-  { name: 'Problem 11 (Ch. 15)', description: 'TC = 50 + ½q², MC = q; short-run price $12', state: { fixed: 50, alpha: 0, beta: -0.5, gamma: 0, price: 12, qMax: 20, yMax: 24 } },
-  { name: 'Problem 10 (Ch. 15)', description: 'FC $16, AVC = q (smooth version: MC = 2q), P = $10', state: { fixed: 16, alpha: 0, beta: -1, gamma: 0, price: 10, qMax: 8, yMax: 16 } },
+  { name: 'Typical firm', description: 'U-shaped AVC and ATC, rising MC', state: { fixed: 30, alpha: 12, beta: 1.2, gamma: 0.05, price: 9, qMax: 25, yMax: 30, fixedMax: 100 } },
+  { name: 'Problem 11 (Ch. 15)', description: 'TC = 50 + ½q², MC = q; short-run price $12', state: { fixed: 50, alpha: 0, beta: -0.5, gamma: 0, price: 12, qMax: 20, yMax: 24, fixedMax: 150 } },
+  { name: 'Problem 10 (Ch. 15)', description: 'FC $16, AVC = q (smooth version: MC = 2q), P = $10', state: { fixed: 16, alpha: 0, beta: -1, gamma: 0, price: 10, qMax: 8, yMax: 16, fixedMax: 50 } },
 ];
 
 export default function CompetitiveFirm({ initial, onChange, preset = 0 }: ModelProps<FirmState>) {
@@ -52,7 +52,7 @@ export default function CompetitiveFirm({ initial, onChange, preset = 0 }: Model
         <Slider label="Price P" value={st.price} min={0} max={st.yMax} step={st.yMax / 400} onChange={(price) => set({ price })} format={(v) => money(v)} />
       </ControlGroup>
       <ControlGroup title="Costs  TC = F + αq − βq² + γq³">
-        <Slider label="Fixed cost F" value={st.fixed} min={0} max={start.fixed * 3 + 10} step={0.5} onChange={(fixed) => set({ fixed })} format={(v) => money(v)} />
+        <Slider label="Fixed cost F" value={st.fixed} min={0} max={st.fixedMax ?? 100} step={0.5} onChange={(fixed) => set({ fixed })} format={(v) => money(v)} />
         <Slider label="α" value={st.alpha} min={0} max={st.yMax * 0.8} step={st.yMax / 400} onChange={(alpha) => set({ alpha })} format={(v) => fmt(v, 2)} />
         <Slider label="β" value={st.beta} min={-st.yMax / st.qMax} max={st.yMax / st.qMax * 0.5} step={st.yMax / st.qMax / 200} onChange={(beta) => set({ beta })} format={(v) => fmt(v, 3)} />
         <Slider label="γ" value={st.gamma} min={0} max={0.2} step={0.001} onChange={(gamma) => set({ gamma })} format={(v) => fmt(v, 3)} />

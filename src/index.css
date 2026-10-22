@@ -63,6 +63,19 @@ body { @apply bg-ink-50 text-ink-900 dark:bg-ink-950 dark:text-ink-100; font-fea
 
 input[type='range'] { accent-color: var(--accent); }
 
+/* Custom range slider: filled track + large thumb, consistent in light and dark mode */
+.econ-range { -webkit-appearance: none; appearance: none; height: 22px; background: transparent; cursor: pointer; touch-action: none; }
+.econ-range:focus { outline: none; }
+.econ-range::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--thumb) 0, var(--thumb) var(--fill), #e4e4ea var(--fill), #e4e4ea 100%); }
+.dark .econ-range::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--thumb) 0, var(--thumb) var(--fill), #34343f var(--fill), #34343f 100%); }
+.econ-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -7px; height: 20px; width: 20px; border-radius: 999px; background: #fff; border: 3px solid var(--thumb); box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .1s; }
+.econ-range:active::-webkit-slider-thumb { transform: scale(1.15); }
+.econ-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--thumb) 30%, transparent); }
+.econ-range::-moz-range-track { height: 6px; border-radius: 999px; background: #e4e4ea; }
+.dark .econ-range::-moz-range-track { background: #34343f; }
+.econ-range::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--thumb); }
+.econ-range::-moz-range-thumb { height: 14px; width: 14px; border-radius: 999px; background: #fff; border: 3px solid var(--thumb); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+
 @keyframes fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .animate-fade-up { animation: fade-up 0.35s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .animate-fade-up { animation: none; } }

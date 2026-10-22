@@ -73,8 +73,8 @@ export default function Elasticity({ initial, onChange, preset = 0 }: ModelProps
         <Slider label="Slope b" value={st.b} min={(st.yMax / st.xMax) * 0.2} max={(st.yMax / st.xMax) * 3} step={(st.yMax / st.xMax) / 200} onChange={(b) => set({ b })} format={(v) => fmt(v, 3)} />
       </ControlGroup>
       <ControlGroup title="Selected points (or drag them)">
-        <Slider label="Point 1 quantity" color="#2563eb" value={q1} min={0} max={qMaxCurve} step={qMaxCurve / 400} onChange={(q1) => set({ q1 })} format={(v) => `Q=${fmt(v)}, P=${fmt(dp(v))}`} />
-        <Slider label="Point 2 quantity" color="#ea580c" value={q2} min={0} max={qMaxCurve} step={qMaxCurve / 400} onChange={(q2) => set({ q2 })} format={(v) => `Q=${fmt(v)}, P=${fmt(dp(v))}`} />
+        <Slider label="Point 1 quantity" color="#2563eb" value={q1} min={0} max={st.xMax} step={st.xMax / 300} onChange={(q1) => set({ q1: clampQ(q1) })} format={(v) => `Q=${fmt(v)}, P=${fmt(dp(v))}`} />
+        <Slider label="Point 2 quantity" color="#ea580c" value={q2} min={0} max={st.xMax} step={st.xMax / 300} onChange={(q2) => set({ q2: clampQ(q2) })} format={(v) => `Q=${fmt(v)}, P=${fmt(dp(v))}`} />
       </ControlGroup>
       <div className="px-1"><Toggle checked={st.showRegions} onChange={(showRegions) => set({ showRegions })} label="Colour elastic / inelastic ranges" /></div>
     </>

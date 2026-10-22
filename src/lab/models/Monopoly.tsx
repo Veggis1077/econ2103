@@ -67,11 +67,11 @@ export default function Monopoly({ initial, onChange, preset = 0 }: ModelProps<M
       </ControlGroup>
       <ControlGroup title="Cost  TC = F + cQ + (e/2)Q²" color="var(--c-mc)">
         <Slider label="Fixed cost F" value={st.fixed} min={0} max={3000} step={10} onChange={(fixed) => set({ fixed })} format={(v) => money(v, 0)} />
-        <Slider label="MC intercept c" value={st.c} min={0} max={st.a * 0.8} step={1} onChange={(c) => set({ c })} />
+        <Slider label="MC intercept c" value={st.c} min={0} max={160} step={1} onChange={(c) => set({ c })} />
         <Slider label="MC slope e" value={st.e} min={0} max={3} step={0.05} onChange={(e) => set({ e })} format={(v) => fmt(v, 2)} />
       </ControlGroup>
       <ControlGroup title="Explore">
-        <Slider label="Try quantity" value={qt} min={0} max={xMax} step={xMax / 200} onChange={(qTry) => set({ qTry })} format={(v) => fmt(v, 1)} />
+        <Slider label="Try quantity" value={qt} min={0} max={Math.round(xMax)} step={0.5} onChange={(qTry) => set({ qTry })} format={(v) => fmt(v, 1)} />
         <Toggle checked={st.showCompetitive} onChange={(showCompetitive) => set({ showCompetitive })} label="Show competitive benchmark (P = MC)" />
       </ControlGroup>
     </>

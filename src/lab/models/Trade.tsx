@@ -13,6 +13,8 @@ export interface TradeState {
   /** Share of time on X with trade. */
   tradeShareA: number; tradeShareB: number;
   unitsOfX: number; unitsOfY: number;
+  /** Fixed slider limits for the scenario (never derived from the slider's own value). */
+  timeMax?: number; tradeXMax?: number; tradeYMax?: number;
 }
 
 const PRESETS: { name: string; description: string; state: TradeState }[] = [
@@ -23,7 +25,18 @@ const PRESETS: { name: string; description: string; state: TradeState }[] = [
 ];
 
 function t(s: Partial<TradeState>): TradeState {
-  return { nameA: 'A', nameB: 'B', xName: 'X', yName: 'Y', unit: '', totalTime: 100, timeXA: 1, timeYA: 1, timeXB: 1, timeYB: 1, noTradeA: 0.5, noTradeB: 0.5, tradeShareA: 0, tradeShareB: 1, unitsOfX: 0, unitsOfY: 0, ...s };
+  const base: TradeState = { nameA: 'A', nameB: 'B', xName: 'X', yName: 'Y', unit: '', totalTime: 100, timeXA: 1, timeYA: 1, timeXB: 1, timeYB: 1, noTradeA: 0.5, noTradeB: 0.5, tradeShareA: 0, tradeShareB: 1, unitsOfX: 0, unitsOfY: 0, ...s };
+  const times = [base.timeXA, base.timeYA, base.timeXB, base.timeYB];
+  const maxX = Math.max(base.totalTime / base.timeXA, base.totalTime / base.timeXB);
+  const maxY = Math.max(base.totalTime / base.timeYA, base.totalTime / base.timeYB);
+  return { ...base, timeMax: Math.max(...times) * 3, tradeXMax: maxX * 1.5, tradeYMax: maxY * 1.5 };
+}
+
+/** Round up to 1, 2, 2.5 or 5 × 10^k for tidy axis limits. */
+function niceCeil(v: number): number {
+  const mag = 10 ** Math.floor(Math.log10(v));
+  for (const m of [1, 2, 2.5, 5, 10]) if (v <= m * mag) return m * mag;
+  return 10 * mag;
 }
 
 export default function Trade({ initial, onChange, preset = 0 }: ModelProps<TradeState>) {
@@ -32,6 +45,11 @@ export default function Trade({ initial, onChange, preset = 0 }: ModelProps<Trad
   const set = (p: Partial<TradeState>) => setSt((o) => ({ ...o, ...p }));
   useEffect(() => { onChange?.(st); }, [st]); // eslint-disable-line
 
+  const tMax = st.timeMax ?? 3 * Math.max(st.timeXA, st.timeYA, st.timeXB, st.timeYB);
+  const tMin = tMax / 100;
+  const tStep = tMax / 300;
+  const qxMax = st.tradeXMax ?? 100;
+  const qyMax = st.tradeYMax ?? 100;
   const A = producerFromTimes(st.nameA, st.timeXA, st.timeYA, st.totalTime);
   const B = producerFromTimes(st.nameB, st.timeXB, st.timeYB, st.totalTime);
   const adv = calculateOpportunityCost(A, B);
@@ -49,8 +67,9 @@ export default function Trade({ initial, onChange, preset = 0 }: ModelProps<Trad
     const prod = trade.production[P.name];
     const cons = trade.consumption[P.name];
     const nt = noTrade[P.name];
-    const xm = Math.max(P.maxX, cons.x, nt.x) * 1.25;
-    const ym = Math.max(P.maxY, cons.y, nt.y) * 1.25;
+    // Stable axes: depend only on the producer's PPF, never on the points being dragged.
+    const xm = niceCeil(P.maxX * 1.5);
+    const ym = niceCeil(P.maxY * 1.5);
     return (
       <div className="min-w-0">
         <div className="mb-1 text-center text-sm font-semibold">{P.name}</div>
@@ -89,14 +108,14 @@ export default function Trade({ initial, onChange, preset = 0 }: ModelProps<Trad
   const controls = (
     <>
       <ControlGroup title={`Time per unit (total ${st.totalTime})`}>
-        <Slider label={`${st.nameA}: ${st.xName}`} value={st.timeXA} min={st.timeXA / 4} max={st.timeXA * 3} step={st.timeXA / 40} onChange={(timeXA) => set({ timeXA })} format={(v) => fmt(v, 2)} />
-        <Slider label={`${st.nameA}: ${st.yName}`} value={st.timeYA} min={st.timeYA / 4} max={st.timeYA * 3} step={st.timeYA / 40} onChange={(timeYA) => set({ timeYA })} format={(v) => fmt(v, 2)} />
-        <Slider label={`${st.nameB}: ${st.xName}`} value={st.timeXB} min={st.timeXB / 4} max={st.timeXB * 3} step={st.timeXB / 40} onChange={(timeXB) => set({ timeXB })} format={(v) => fmt(v, 2)} />
-        <Slider label={`${st.nameB}: ${st.yName}`} value={st.timeYB} min={st.timeYB / 4} max={st.timeYB * 3} step={st.timeYB / 40} onChange={(timeYB) => set({ timeYB })} format={(v) => fmt(v, 2)} />
+        <Slider label={`${st.nameA}: ${st.xName}`} value={st.timeXA} min={tMin} max={tMax} step={tStep} onChange={(timeXA) => set({ timeXA })} />
+        <Slider label={`${st.nameA}: ${st.yName}`} value={st.timeYA} min={tMin} max={tMax} step={tStep} onChange={(timeYA) => set({ timeYA })} />
+        <Slider label={`${st.nameB}: ${st.xName}`} value={st.timeXB} min={tMin} max={tMax} step={tStep} onChange={(timeXB) => set({ timeXB })} />
+        <Slider label={`${st.nameB}: ${st.yName}`} value={st.timeYB} min={tMin} max={tMax} step={tStep} onChange={(timeYB) => set({ timeYB })} />
       </ControlGroup>
       <ControlGroup title="Trade">
-        <Slider label={`${xExporter} ships ${st.xName}`} value={st.unitsOfX} min={0} max={Math.max(A.maxX, B.maxX)} step={Math.max(A.maxX, B.maxX) / 200} onChange={(unitsOfX) => set({ unitsOfX })} format={(v) => fmt(v, 2)} />
-        <Slider label={`…in exchange for ${st.yName}`} value={st.unitsOfY} min={0} max={Math.max(A.maxY, B.maxY)} step={Math.max(A.maxY, B.maxY) / 200} onChange={(unitsOfY) => set({ unitsOfY })} format={(v) => fmt(v, 2)} />
+        <Slider label={`${xExporter} ships ${st.xName}`} value={st.unitsOfX} min={0} max={qxMax} step={qxMax / 300} onChange={(unitsOfX) => set({ unitsOfX })} format={(v) => fmt(v, 2)} />
+        <Slider label={`…in exchange for ${st.yName}`} value={st.unitsOfY} min={0} max={qyMax} step={qyMax / 300} onChange={(unitsOfY) => set({ unitsOfY })} format={(v) => fmt(v, 2)} />
         {range && <button className="btn-secondary w-full !py-1.5 text-xs" onClick={() => set({ unitsOfY: +(st.unitsOfX * (range[0] + range[1]) / 2).toFixed(4) })}>Set price to the middle of the range</button>}
       </ControlGroup>
     </>
