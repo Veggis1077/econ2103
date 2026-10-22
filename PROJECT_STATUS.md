@@ -1,6 +1,8 @@
 # Project status
 
-_Last updated: 2026-10-22 (end of session 1). State: **feature-complete for all provided material.**_
+_Last updated: 2026-10-22. State: **feature-complete for all provided material and deployed.**_
+
+**Live:** https://veggis1077.github.io/econ2103/ · **Repo:** https://github.com/Veggis1077/econ2103 (public; `docs/source-notes/` with verbatim slide text is git-ignored and kept local only, per the slides' copyright notice).
 
 ## Completed
 - **Source analysis**: all lecture slides (Ch1–8, 14), 11 problem-set PDFs and the 39-question PDF were transcribed into `docs/source-notes/`. Curriculum map and overlaps are in `docs/CURRICULUM.md`.
